@@ -168,6 +168,7 @@ public class Osc : IServiceEndpoint
 
     public int Initialize()
     {
+        //Need to push again to trigger workflow
         Host?.Log("Called Initialize!");
         Host?.Log("Init!");
 
