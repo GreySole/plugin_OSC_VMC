@@ -1,11 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Net;
-using System.Net.Sockets;
-using System.Numerics;
 using Amethyst.Plugins.Contract;
 using BuildSoft.OscCore;
 using Microsoft.UI;
@@ -15,7 +10,13 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Markup;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
+using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Net;
+using System.Net.Sockets;
+using System.Numerics;
 using VRC.OSCQuery;
+using Windows.Media.Protection.PlayReady;
 using static VRC.OSCQuery.Extensions;
 
 namespace plugin_OSC;
@@ -53,8 +54,8 @@ public class OscPosition(Vector3 position = default, Quaternion orientation = de
 }
 
 [Export(typeof(IServiceEndpoint))]
-[ExportMetadata("Name", "VRChat OSC")]
-[ExportMetadata("Guid", "K2VRTEAM-AME2-APII-SNDP-SENDPTVRCOSC")]
+[ExportMetadata("Name", "VMC OSC")]
+[ExportMetadata("Guid", "K2VRTEAM-AME2-APII-SNDP-SENDPTVMCOSC")]
 [ExportMetadata("Publisher", "K2VR Team")]
 [ExportMetadata("Version", "1.0.0.1")]
 [ExportMetadata("Website", "https://github.com/KinectToVR/plugin_OSC")]
@@ -156,7 +157,7 @@ public class Osc : IServiceEndpoint
 
             // Vector3 eulerAngles = NumericExtensions.ToEulerAngles(headJoint.Value.Orientation);
             foreach (var receiver in _receivers.Values.ToList())
-                SendTrackerDataToReceiver("head", new OscPosition(headJoint.Value.Position + HeadOffset), receiver);
+                SendTrackerDataToReceiver("Head", new OscPosition(headJoint.Value.Position + HeadOffset), receiver);
         }
         catch (Exception ex)
         {
@@ -571,7 +572,7 @@ public class Osc : IServiceEndpoint
                 foreach (var tracker in trackers)
                 {
                     var trackerId = TrackerRoleToOscId(tracker.Role);
-                    if (trackerId <= 0) continue;
+                    if (trackerId == "") continue;
 
                     SendTrackerDataToReceiver(trackerId.ToString(),
                         new OscPosition(tracker.Position, tracker.Orientation), receiver);
@@ -604,7 +605,7 @@ public class Osc : IServiceEndpoint
                 {
                     var trackerId = TrackerRoleToOscId(tracker.Role);
 
-                    if (trackerId <= 0) continue;
+                    if (trackerId == "") continue;
 
                     SendTrackerDataToReceiver(trackerId.ToString(),
                         new OscPosition(tracker.Position, tracker.Orientation), receiver);
@@ -681,19 +682,19 @@ public class Osc : IServiceEndpoint
         return -1;
     }
 
-    private static int TrackerRoleToOscId(TrackerType role)
+    private static string TrackerRoleToOscId(TrackerType role)
     {
         return role switch
         {
-            TrackerType.TrackerWaist => 1,
-            TrackerType.TrackerLeftFoot => 2,
-            TrackerType.TrackerRightFoot => 3,
-            TrackerType.TrackerLeftKnee => 4,
-            TrackerType.TrackerRightKnee => 5,
-            TrackerType.TrackerLeftElbow => 6,
-            TrackerType.TrackerRightElbow => 7,
-            TrackerType.TrackerChest => 8,
-            _ => -1
+            TrackerType.TrackerWaist => "Hips",
+            TrackerType.TrackerLeftFoot => "LeftFoot",
+            TrackerType.TrackerRightFoot => "RightFoot",
+            TrackerType.TrackerLeftKnee => "LeftKnee",
+            TrackerType.TrackerRightKnee => "RightKnee",
+            TrackerType.TrackerLeftElbow => "LeftElbow",
+            TrackerType.TrackerRightElbow => "RightElbow",
+            TrackerType.TrackerChest => "Chest",
+            _ => ""
         };
     }
 
@@ -745,12 +746,31 @@ public class Osc : IServiceEndpoint
         // Exit early if transform is null
         if (target is null) return;
 
-        receiver.Send($"{TRACKERS_ROOT}/{trackerName}/{TRACKERS_POSITION}",
+        /*
+         * receiver.Send($"{TRACKERS_ROOT}/{trackerName}/{TRACKERS_POSITION}",
             new BuildSoft.OscCore.UnityObjects.Vector3(target.Position.X, target.Position.Y, -target.Position.Z));
-
+        
         var eulerAngles = NumericExtensions.ToEulerAngles(target.Orientation);
+       
         receiver.Send($"{TRACKERS_ROOT}/{trackerName}/{TRACKERS_ROTATION}",
             new BuildSoft.OscCore.UnityObjects.Vector3(eulerAngles.X, eulerAngles.Y, eulerAngles.Z));
+        */
+
+        uint formatHash = (uint)"sfffffff".GetHashCode();
+
+        receiver.Writer.Reset();
+        receiver.Writer.WriteAddressAndTags("/VMC/Ext/Bone/Pos", formatHash);
+        receiver.Writer.Write(trackerName);
+        receiver.Writer.Write(target.Position.X);
+        receiver.Writer.Write(target.Position.Y);
+        receiver.Writer.Write(target.Position.Z);
+        receiver.Writer.Write(target.Orientation.X);
+        receiver.Writer.Write(target.Orientation.Y);
+        receiver.Writer.Write(target.Orientation.Z);
+        receiver.Writer.Write(target.Orientation.W);
+        receiver.Socket.Send(receiver.Writer.Buffer, receiver.Writer.Length, System.Net.Sockets.SocketFlags.None);
+
+
     }
 
 
