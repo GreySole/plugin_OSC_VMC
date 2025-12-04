@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using VRC.OSCQuery;
 
-namespace plugin_OSC;
+namespace plugin_VMC;
 
 public class OscLogger : ILogger<OSCQueryService>
 {

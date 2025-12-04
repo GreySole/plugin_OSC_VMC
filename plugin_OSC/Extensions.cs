@@ -2,7 +2,7 @@
 using System.Numerics;
 using BuildSoft.OscCore;
 
-namespace plugin_OSC;
+namespace plugin_VMC;
 
 public static class NumericExtensions
 {

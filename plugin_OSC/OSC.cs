@@ -19,7 +19,7 @@ using VRC.OSCQuery;
 using Windows.Media.Protection.PlayReady;
 using static VRC.OSCQuery.Extensions;
 
-namespace plugin_OSC;
+namespace plugin_VMC;
 
 public struct OscConfig
 {
@@ -55,10 +55,10 @@ public class OscPosition(Vector3 position = default, Quaternion orientation = de
 
 [Export(typeof(IServiceEndpoint))]
 [ExportMetadata("Name", "VMC OSC")]
-[ExportMetadata("Guid", "K2VRTEAM-AME2-APII-SNDP-SENDPTVMCOSC")]
+[ExportMetadata("Guid", "GREYSOLE-AME2-APII-SNDP-SENDPTVMCOSC")]
 [ExportMetadata("Publisher", "K2VR Team")]
 [ExportMetadata("Version", "1.0.0.1")]
-[ExportMetadata("Website", "https://github.com/KinectToVR/plugin_OSC")]
+[ExportMetadata("Website", "https://github.com/GreySole/plugin_OSC_VMC")]
 [ExportMetadata("DependencyLink", "https://docs.k2vr.tech/{0}/osc/")]
 [ExportMetadata("CoreSetupData", typeof(SetupData))]
 public class Osc : IServiceEndpoint
@@ -168,7 +168,6 @@ public class Osc : IServiceEndpoint
 
     public int Initialize()
     {
-        //Need to push again to trigger workflow
         Host?.Log("Called Initialize!");
         Host?.Log("Init!");
 

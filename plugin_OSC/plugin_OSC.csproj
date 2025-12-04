@@ -4,13 +4,14 @@
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <TargetPlatformVersion>10.0.22621.0</TargetPlatformVersion>
     <TargetPlatformIdentifier>Windows</TargetPlatformIdentifier>
-    <RootNamespace>plugin_OSC</RootNamespace>
+    <RootNamespace>plugin_VMC</RootNamespace>
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <PublishTrimmed>false</PublishTrimmed>
     <Platforms>x64</Platforms>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>preview</LangVersion>
+    <AssemblyName>plugin_VMC</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
