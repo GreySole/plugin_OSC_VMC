@@ -566,9 +566,12 @@ public class Osc : IServiceEndpoint
         }
 
         var trackers = trackerBases.ToList();
+        
         foreach (var receiver in _receivers.Values.ToList())
             try
             {
+                SendVmcTimeMessage(receiver);
+                SendVmcRootMessage(receiver, new OscPosition(Vector3.Zero, Quaternion.Identity));
                 foreach (var tracker in trackers)
                 {
                     var trackerId = TrackerRoleToOscId(tracker.Role);
@@ -577,6 +580,7 @@ public class Osc : IServiceEndpoint
                     SendTrackerDataToReceiver(trackerId.ToString(),
                         new OscPosition(tracker.Position, tracker.Orientation), receiver);
                 }
+                SendVmcOkMessage(receiver);
             }
             catch (Exception ex)
             {
@@ -601,6 +605,8 @@ public class Osc : IServiceEndpoint
         foreach (var receiver in _receivers.Values.ToList())
             try
             {
+                SendVmcTimeMessage(receiver);
+                SendVmcRootMessage(receiver, new OscPosition(Vector3.Zero, Quaternion.Identity));
                 foreach (var tracker in trackers)
                 {
                     var trackerId = TrackerRoleToOscId(tracker.Role);
@@ -610,6 +616,7 @@ public class Osc : IServiceEndpoint
                     SendTrackerDataToReceiver(trackerId.ToString(),
                         new OscPosition(tracker.Position, tracker.Orientation), receiver);
                 }
+                SendVmcOkMessage(receiver);
             }
             catch (Exception ex)
             {
@@ -743,20 +750,7 @@ public class Osc : IServiceEndpoint
     /// `/tracking/trackers/i/rotation`
     private void SendTrackerDataToReceiver(string trackerName, OscPosition target, OscClientPlus receiver)
     {
-        // Exit early if transform is null
         if (target is null) return;
-
-        /*
-         * receiver.Send($"{TRACKERS_ROOT}/{trackerName}/{TRACKERS_POSITION}",
-            new BuildSoft.OscCore.UnityObjects.Vector3(target.Position.X, target.Position.Y, -target.Position.Z));
-        
-        var eulerAngles = NumericExtensions.ToEulerAngles(target.Orientation);
-       
-        receiver.Send($"{TRACKERS_ROOT}/{trackerName}/{TRACKERS_ROTATION}",
-            new BuildSoft.OscCore.UnityObjects.Vector3(eulerAngles.X, eulerAngles.Y, eulerAngles.Z));
-        */
-
-        //var typeTags = $",s{boolTag}";
 
         receiver.Writer.Reset();
         receiver.Writer.Write("/VMC/Ext/Bone/Pos");
@@ -770,8 +764,47 @@ public class Osc : IServiceEndpoint
         receiver.Writer.Write(target.Orientation.Z);
         receiver.Writer.Write(target.Orientation.W);
         receiver.Socket.Send(receiver.Writer.Buffer, receiver.Writer.Length, System.Net.Sockets.SocketFlags.None);
+    }
 
+    private void SendVmcRootMessage(OscClientPlus receiver, OscPosition rootPosition)
+    {
+        // Send root transform - required for VMC protocol
+        receiver.Writer.Reset();
+        receiver.Writer.Write("/VMC/Ext/Root/Pos");
+        receiver.Writer.Write(",sfffffff");
+        receiver.Writer.Write("root");
+        receiver.Writer.Write(rootPosition.Position.X);
+        receiver.Writer.Write(rootPosition.Position.Y);
+        receiver.Writer.Write(rootPosition.Position.Z);
+        receiver.Writer.Write(rootPosition.Orientation.X);
+        receiver.Writer.Write(rootPosition.Orientation.Y);
+        receiver.Writer.Write(rootPosition.Orientation.Z);
+        receiver.Writer.Write(rootPosition.Orientation.W);
+        receiver.Socket.Send(receiver.Writer.Buffer, receiver.Writer.Length, System.Net.Sockets.SocketFlags.None);
+    }
 
+    private void SendVmcTimeMessage(OscClientPlus receiver)
+    {
+        // Send timing information - helps with synchronization
+        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000.0f;
+
+        receiver.Writer.Reset();
+        receiver.Writer.Write("/VMC/Ext/T");
+        receiver.Writer.Write(",f");
+        receiver.Writer.Write(timestamp);
+        receiver.Socket.Send(receiver.Writer.Buffer, receiver.Writer.Length, System.Net.Sockets.SocketFlags.None);
+    }
+
+    private void SendVmcOkMessage(OscClientPlus receiver)
+    {
+        // Send timing information - helps with synchronization
+        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000.0f;
+
+        receiver.Writer.Reset();
+        receiver.Writer.Write("/VMC/Ext/OK");
+        receiver.Writer.Write(",i");
+        receiver.Writer.Write(1);
+        receiver.Socket.Send(receiver.Writer.Buffer, receiver.Writer.Length, System.Net.Sockets.SocketFlags.None);
     }
 
 
