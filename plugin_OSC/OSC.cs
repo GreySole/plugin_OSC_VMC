@@ -756,10 +756,11 @@ public class Osc : IServiceEndpoint
             new BuildSoft.OscCore.UnityObjects.Vector3(eulerAngles.X, eulerAngles.Y, eulerAngles.Z));
         */
 
-        uint formatHash = (uint)"sfffffff".GetHashCode();
+        //var typeTags = $",s{boolTag}";
 
         receiver.Writer.Reset();
-        receiver.Writer.WriteAddressAndTags("/VMC/Ext/Bone/Pos", formatHash);
+        receiver.Writer.Write("/VMC/Ext/Bone/Pos");
+        receiver.Writer.Write(",sfffffff");
         receiver.Writer.Write(trackerName);
         receiver.Writer.Write(target.Position.X);
         receiver.Writer.Write(target.Position.Y);

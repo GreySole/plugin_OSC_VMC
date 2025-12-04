@@ -26,7 +26,7 @@ public class OscLogger : ILogger<OSCQueryService>
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception,
         Func<TState, Exception, string> formatter)
     {
-        _host?.Log($"[VRC-OSCQuery] {state}", logLevel switch
+        _host?.Log($"[VMC-OSCQuery] {state}", logLevel switch
         {
             LogLevel.Warning => LogSeverity.Warning,
             LogLevel.Error => LogSeverity.Error,
